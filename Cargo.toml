@@ -1,0 +1,26 @@
+[package]
+name = "mdviewer"
+version = "0.1.0"
+edition = "2021"
+description = "A minimal glow-inspired markdown viewer for macOS"
+authors = ["Matt Dennis"]
+
+[dependencies]
+anyhow = "1"
+eframe = { version = "0.34", default-features = false, features = ["default_fonts", "glow"] }
+egui = "0.34"
+egui_commonmark = { version = "0.23", features = ["better_syntax_highlighting"] }
+rfd = "0.15"
+
+[package.metadata.bundle]
+name = "mdviewer"
+identifier = "com.mattdennis.mdviewer"
+icon = []
+version = "0.1.0"
+copyright = "Copyright (c) Matt Dennis 2026"
+category = "public.app-category.utilities"
+short_description = "Markdown viewer"
+long_description = "A minimal glow-inspired markdown viewer"
+
+[[package.metadata.bundle.bin]]
+name = "mdviewer"
