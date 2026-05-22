@@ -66,7 +66,11 @@ fn setup_fonts(ctx: &egui::Context) {
     ctx.set_fonts(fonts);
 }
 
-fn try_add_font(fonts: &mut FontDefinitions, key: &str, path: impl AsRef<std::path::Path>) -> Option<String> {
+pub(crate) fn try_add_font(
+    fonts: &mut FontDefinitions,
+    key: &str,
+    path: impl AsRef<std::path::Path>,
+) -> Option<String> {
     let bytes = std::fs::read(path.as_ref()).ok()?;
     let name = key.to_owned();
     fonts.font_data.insert(name.clone(), FontData::from_owned(bytes).into());
@@ -116,4 +120,42 @@ fn setup_visuals(ctx: &egui::Context) {
         egui::FontId::new(13.0, FontFamily::Monospace),
     );
     ctx.set_global_style(style);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
+
+    #[test]
+    fn markdown_viewer_builds_without_panic() {
+        let _viewer = markdown_viewer();
+    }
+
+    #[test]
+    fn try_add_font_returns_none_for_missing_path() {
+        let mut fonts = FontDefinitions::default();
+        assert!(try_add_font(&mut fonts, "missing", "/no/such/font.ttf").is_none());
+    }
+
+    #[test]
+    fn try_add_font_loads_bytes_from_existing_file() {
+        let mut file = NamedTempFile::new().unwrap();
+        file.write_all(b"font-bytes").unwrap();
+
+        let mut fonts = FontDefinitions::default();
+        let name = try_add_font(&mut fonts, "test-font", file.path()).unwrap();
+
+        assert_eq!(name, "test-font");
+        assert!(fonts.font_data.contains_key("test-font"));
+    }
+
+    #[test]
+    fn theme_constants_are_stable() {
+        assert_eq!(COLUMN_MAX_WIDTH, 820.0);
+        assert_eq!(BG, Color32::from_rgb(255, 255, 255));
+        assert_eq!(TEXT, Color32::from_rgb(31, 35, 40));
+        assert_eq!(LINK, Color32::from_rgb(9, 105, 218));
+    }
 }

@@ -1556,6 +1556,7 @@ dependencies = [
  "egui",
  "egui_commonmark",
  "rfd",
+ "tempfile",
 ]
 
 [[package]]

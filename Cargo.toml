@@ -12,6 +12,9 @@ egui = "0.34"
 egui_commonmark = { version = "0.23", features = ["better_syntax_highlighting"] }
 rfd = "0.15"
 
+[dev-dependencies]
+tempfile = "3"
+
 [package.metadata.bundle]
 name = "mdviewer"
 identifier = "com.mattdennis.mdviewer"
