@@ -2,7 +2,7 @@
 name = "mdviewer"
 version = "0.1.0"
 edition = "2021"
-description = "A minimal glow-inspired markdown viewer for macOS"
+description = "Minimal markdown viewer for macOS"
 authors = ["Matt Dennis"]
 
 [dependencies]
@@ -23,7 +23,7 @@ version = "0.1.0"
 copyright = "Copyright (c) Matt Dennis 2026"
 category = "public.app-category.utilities"
 short_description = "Markdown viewer"
-long_description = "A minimal glow-inspired markdown viewer"
+long_description = "Minimal markdown viewer"
 
 [[package.metadata.bundle.bin]]
 name = "mdviewer"

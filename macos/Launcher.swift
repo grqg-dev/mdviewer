@@ -18,7 +18,6 @@ final class LaunchDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        // Give Launch Services a moment to deliver openFiles for `open -a App file.md`.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
             self?.stopApp()
         }

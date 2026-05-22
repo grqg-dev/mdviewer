@@ -1,7 +1,6 @@
 use eframe::egui::{self, Color32, FontData, FontDefinitions, FontFamily, Stroke, Vec2, Visuals};
 use egui_commonmark::CommonMarkViewer;
 
-// GitHub / Cursor markdown preview palette
 pub const BG: Color32 = Color32::from_rgb(255, 255, 255);
 pub const TEXT: Color32 = Color32::from_rgb(31, 35, 40);
 pub const MUTED: Color32 = Color32::from_rgb(101, 109, 118);
