@@ -14,16 +14,3 @@ rfd = "0.15"
 
 [dev-dependencies]
 tempfile = "3"
-
-[package.metadata.bundle]
-name = "mdviewer"
-identifier = "com.mattdennis.mdviewer"
-icon = []
-version = "0.1.0"
-copyright = "Copyright (c) Matt Dennis 2026"
-category = "public.app-category.utilities"
-short_description = "Markdown viewer"
-long_description = "Minimal markdown viewer"
-
-[[package.metadata.bundle.bin]]
-name = "mdviewer"
