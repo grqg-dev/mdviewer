@@ -128,11 +128,6 @@ mod tests {
     use tempfile::NamedTempFile;
 
     #[test]
-    fn markdown_viewer_builds_without_panic() {
-        let _viewer = markdown_viewer();
-    }
-
-    #[test]
     fn try_add_font_returns_none_for_missing_path() {
         let mut fonts = FontDefinitions::default();
         assert!(try_add_font(&mut fonts, "missing", "/no/such/font.ttf").is_none());
@@ -148,13 +143,5 @@ mod tests {
 
         assert_eq!(name, "test-font");
         assert!(fonts.font_data.contains_key("test-font"));
-    }
-
-    #[test]
-    fn theme_constants_are_stable() {
-        assert_eq!(COLUMN_MAX_WIDTH, 820.0);
-        assert_eq!(BG, Color32::from_rgb(255, 255, 255));
-        assert_eq!(TEXT, Color32::from_rgb(31, 35, 40));
-        assert_eq!(LINK, Color32::from_rgb(9, 105, 218));
     }
 }

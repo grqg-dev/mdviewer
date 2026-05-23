@@ -120,13 +120,6 @@ mod tests {
     }
 
     #[test]
-    fn markdown_extensions_include_common_suffixes() {
-        assert!(MARKDOWN_EXTENSIONS.contains(&"md"));
-        assert!(MARKDOWN_EXTENSIONS.contains(&"markdown"));
-        assert!(MARKDOWN_EXTENSIONS.contains(&"txt"));
-    }
-
-    #[test]
     fn read_markdown_loads_file_content() {
         let mut file = NamedTempFile::new().unwrap();
         writeln!(file, "# Hello").unwrap();

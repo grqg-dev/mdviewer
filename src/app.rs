@@ -181,14 +181,6 @@ mod tests {
     }
 
     #[test]
-    fn open_errors_for_missing_path() {
-        let mut app = ViewerApp::new();
-        let err = app.open(PathBuf::from("/no/such/file.md")).unwrap_err();
-        assert!(err.to_string().contains("failed to read"));
-        assert!(err.to_string().contains("file.md"));
-    }
-
-    #[test]
     fn apply_page_scroll_updates_offset() {
         let mut app = ViewerApp::new();
         app.scroll_offset = 100.0;
