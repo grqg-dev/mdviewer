@@ -34,18 +34,6 @@ impl ViewerApp {
         app
     }
 
-    pub fn title(&self) -> &str {
-        &self.title
-    }
-
-    pub fn markdown(&self) -> Option<&str> {
-        self.markdown.as_deref()
-    }
-
-    pub fn scroll_offset(&self) -> f32 {
-        self.scroll_offset
-    }
-
     pub fn open(&mut self, path: PathBuf) -> Result<()> {
         let (markdown, title) = files::read_markdown(&path)?;
         self.title = title;
@@ -64,13 +52,9 @@ impl ViewerApp {
         }
     }
 
-    fn set_window_title(&mut self, ctx: &egui::Context) {
-        ctx.send_viewport_cmd(ViewportCommand::Title(self.title.clone()));
-    }
-
     fn open_with_title(&mut self, path: PathBuf, ctx: &egui::Context) {
         if self.open(path).is_ok() {
-            self.set_window_title(ctx);
+            ctx.send_viewport_cmd(ViewportCommand::Title(self.title.clone()));
         }
     }
 
@@ -191,9 +175,9 @@ mod tests {
         app.scroll_offset = 42.0;
         app.open(file.path().to_path_buf()).unwrap();
 
-        assert_eq!(app.markdown(), Some("# Hello\n"));
-        assert_eq!(app.title(), file.path().file_name().unwrap().to_str().unwrap());
-        assert_eq!(app.scroll_offset(), 0.0);
+        assert_eq!(app.markdown.as_deref(), Some("# Hello\n"));
+        assert_eq!(app.title, file.path().file_name().unwrap().to_str().unwrap());
+        assert_eq!(app.scroll_offset, 0.0);
     }
 
     #[test]
@@ -209,10 +193,10 @@ mod tests {
         let mut app = ViewerApp::new();
         app.scroll_offset = 100.0;
         app.apply_page_scroll(500.0, true, false);
-        assert_eq!(app.scroll_offset(), 550.0);
+        assert_eq!(app.scroll_offset, 550.0);
 
         app.apply_page_scroll(500.0, false, true);
-        assert_eq!(app.scroll_offset(), 100.0);
+        assert_eq!(app.scroll_offset, 100.0);
     }
 
     #[test]
@@ -220,6 +204,6 @@ mod tests {
         let mut app = ViewerApp::new();
         app.scroll_offset = 100.0;
         app.apply_page_scroll(500.0, true, true);
-        assert_eq!(app.scroll_offset(), 100.0);
+        assert_eq!(app.scroll_offset, 100.0);
     }
 }
