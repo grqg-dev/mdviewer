@@ -151,7 +151,7 @@ impl DocumentWindow {
 
         self.handle_drops(ctx);
 
-        if ctx.input(|input| input.key_pressed(Key::Escape)) {
+        if ctx.input(|input| input.key_pressed(Key::Escape) || input.key_pressed(Key::Q)) {
             self.close_requested = true;
             ctx.send_viewport_cmd(ViewportCommand::Close);
         }
