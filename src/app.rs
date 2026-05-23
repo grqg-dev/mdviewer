@@ -6,8 +6,9 @@ use anyhow::Result;
 use eframe::egui::{self, Key, RichText, ScrollArea, Vec2, ViewportCommand, ViewportId};
 use egui_commonmark::CommonMarkCache;
 
+use crate::config::Style;
 use crate::files::{self, scroll_after_page_down, scroll_after_page_up};
-use crate::theme;
+use crate::theme::{self, Palette};
 
 static NEXT_VIEWPORT_ID: AtomicU64 = AtomicU64::new(1);
 
@@ -19,10 +20,12 @@ pub struct DocumentWindow {
     scroll_offset: f32,
     pending_title: Option<String>,
     close_requested: bool,
+    style: Style,
+    palette: Palette,
 }
 
 impl DocumentWindow {
-    pub fn empty() -> Self {
+    pub fn empty(style: Style) -> Self {
         Self {
             viewport_id: next_viewport_id(),
             markdown: None,
@@ -31,11 +34,13 @@ impl DocumentWindow {
             scroll_offset: 0.0,
             pending_title: None,
             close_requested: false,
+            style,
+            palette: Palette::for_style(style),
         }
     }
 
-    pub fn from_path(path: PathBuf) -> Self {
-        let mut window = Self::empty();
+    pub fn from_path(path: PathBuf, style: Style) -> Self {
+        let mut window = Self::empty(style);
         if window.open(path).is_ok() {
             window.pending_title = Some(window.title.clone());
         }
@@ -107,11 +112,9 @@ impl DocumentWindow {
             .scroll_offset(Vec2::new(0.0, self.scroll_offset))
             .show(ui, |ui| {
                 ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                    let width = ui.available_width().min(theme::COLUMN_MAX_WIDTH);
+                    let width = ui.available_width().min(theme::column_max_width(self.style));
                     ui.set_width(width);
-                    theme::markdown_viewer()
-                        .max_image_width(Some(width as usize))
-                        .show(ui, &mut self.cache, markdown);
+                    theme::show_markdown(ui, &mut self.cache, markdown, width, self.style);
                 });
             });
 
@@ -125,9 +128,9 @@ impl DocumentWindow {
                 ui.label(
                     RichText::new(files::empty_state_prompt(drag_hover))
                         .color(if drag_hover {
-                            theme::LINK
+                            self.palette.link
                         } else {
-                            theme::MUTED
+                            self.palette.muted
                         })
                         .size(20.0),
                 );
@@ -166,7 +169,7 @@ impl DocumentWindow {
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::NONE
-                    .fill(theme::BG)
+                    .fill(self.palette.bg)
                     .inner_margin(egui::Margin::symmetric(40, 32)),
             )
             .show_inside(ui, |ui| {
@@ -187,22 +190,28 @@ pub struct ViewerApp {
     main_doc: DocumentWindow,
     extra_docs: Vec<Arc<Mutex<DocumentWindow>>>,
     ipc_rx: mpsc::Receiver<Option<PathBuf>>,
+    style: Style,
 }
 
 impl ViewerApp {
-    pub fn new(initial_path: Option<PathBuf>, ipc_rx: mpsc::Receiver<Option<PathBuf>>) -> Self {
+    pub fn new(initial_path: Option<PathBuf>, ipc_rx: mpsc::Receiver<Option<PathBuf>>, style: Style) -> Self {
         let main_doc = match initial_path {
-            Some(path) => DocumentWindow::from_path(path),
-            None => DocumentWindow::empty(),
+            Some(path) => DocumentWindow::from_path(path, style),
+            None => DocumentWindow::empty(style),
         };
-        Self { main_doc, extra_docs: vec![], ipc_rx }
+        Self {
+            main_doc,
+            extra_docs: vec![],
+            ipc_rx,
+            style,
+        }
     }
 
     fn drain_ipc(&mut self) {
         while let Ok(path) = self.ipc_rx.try_recv() {
             let doc = match path {
-                Some(p) => DocumentWindow::from_path(p),
-                None => DocumentWindow::empty(),
+                Some(p) => DocumentWindow::from_path(p, self.style),
+                None => DocumentWindow::empty(self.style),
             };
             self.extra_docs.push(Arc::new(Mutex::new(doc)));
         }
@@ -269,7 +278,7 @@ mod tests {
         let mut file = NamedTempFile::new().unwrap();
         writeln!(file, "# Hello").unwrap();
 
-        let mut window = DocumentWindow::empty();
+        let mut window = DocumentWindow::empty(Style::Default);
         window.scroll_offset = 42.0;
         window.open(file.path().to_path_buf()).unwrap();
 
@@ -280,7 +289,7 @@ mod tests {
 
     #[test]
     fn apply_page_scroll_updates_offset() {
-        let mut window = DocumentWindow::empty();
+        let mut window = DocumentWindow::empty(Style::Default);
         window.scroll_offset = 100.0;
         window.apply_page_scroll(500.0, true, false);
         assert_eq!(window.scroll_offset, 550.0);
@@ -291,7 +300,7 @@ mod tests {
 
     #[test]
     fn apply_page_scroll_applies_both_when_both_flags_set() {
-        let mut window = DocumentWindow::empty();
+        let mut window = DocumentWindow::empty(Style::Default);
         window.scroll_offset = 100.0;
         window.apply_page_scroll(500.0, true, true);
         assert_eq!(window.scroll_offset, 100.0);

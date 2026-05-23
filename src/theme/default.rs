@@ -1,4 +1,4 @@
-use eframe::egui::{self, Color32, FontData, FontDefinitions, FontFamily, Stroke, Vec2, Visuals};
+use eframe::egui::{self, Color32, FontDefinitions, FontFamily, Stroke, Vec2, Visuals};
 use egui_commonmark::CommonMarkViewer;
 
 pub const BG: Color32 = Color32::from_rgb(255, 255, 255);
@@ -27,7 +27,9 @@ fn setup_fonts(ctx: &egui::Context) {
 
     #[cfg(target_os = "macos")]
     {
-        if let Some(name) = try_add_font(&mut fonts, "text", "/System/Library/Fonts/SFNS.ttf") {
+        if let Some(name) =
+            super::fonts::try_add_font(&mut fonts, "text", "/System/Library/Fonts/SFNS.ttf")
+        {
             fonts
                 .families
                 .entry(FontFamily::Proportional)
@@ -40,7 +42,7 @@ fn setup_fonts(ctx: &egui::Context) {
             "/System/Library/Fonts/SFMono.ttf",
         ];
         for path in mono_paths {
-            if let Some(name) = try_add_font(&mut fonts, "mono", path) {
+            if let Some(name) = super::fonts::try_add_font(&mut fonts, "mono", path) {
                 fonts
                     .families
                     .entry(FontFamily::Monospace)
@@ -52,7 +54,7 @@ fn setup_fonts(ctx: &egui::Context) {
 
         if let Some(home) = std::env::var_os("HOME") {
             let fira = std::path::PathBuf::from(home).join("Library/Fonts/FiraCode-Retina.ttf");
-            if let Some(name) = try_add_font(&mut fonts, "fira-code", &fira) {
+            if let Some(name) = super::fonts::try_add_font(&mut fonts, "fira-code", &fira) {
                 fonts
                     .families
                     .entry(FontFamily::Monospace)
@@ -63,17 +65,6 @@ fn setup_fonts(ctx: &egui::Context) {
     }
 
     ctx.set_fonts(fonts);
-}
-
-pub(crate) fn try_add_font(
-    fonts: &mut FontDefinitions,
-    key: &str,
-    path: impl AsRef<std::path::Path>,
-) -> Option<String> {
-    let bytes = std::fs::read(path.as_ref()).ok()?;
-    let name = key.to_owned();
-    fonts.font_data.insert(name.clone(), FontData::from_owned(bytes).into());
-    Some(name)
 }
 
 fn setup_visuals(ctx: &egui::Context) {
@@ -119,29 +110,4 @@ fn setup_visuals(ctx: &egui::Context) {
         egui::FontId::new(13.0, FontFamily::Monospace),
     );
     ctx.set_global_style(style);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io::Write;
-    use tempfile::NamedTempFile;
-
-    #[test]
-    fn try_add_font_returns_none_for_missing_path() {
-        let mut fonts = FontDefinitions::default();
-        assert!(try_add_font(&mut fonts, "missing", "/no/such/font.ttf").is_none());
-    }
-
-    #[test]
-    fn try_add_font_loads_bytes_from_existing_file() {
-        let mut file = NamedTempFile::new().unwrap();
-        file.write_all(b"font-bytes").unwrap();
-
-        let mut fonts = FontDefinitions::default();
-        let name = try_add_font(&mut fonts, "test-font", file.path()).unwrap();
-
-        assert_eq!(name, "test-font");
-        assert!(fonts.font_data.contains_key("test-font"));
-    }
 }

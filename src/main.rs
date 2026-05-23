@@ -2,24 +2,24 @@ use anyhow::Result;
 use mdviewer::ViewerApp;
 
 fn main() -> Result<()> {
-    let cli_path = mdviewer::files::cli_path();
+    let options = mdviewer::files::launch_options();
 
-    if mdviewer::ipc::deliver_to_running_instance(cli_path.as_deref())? {
+    if mdviewer::ipc::deliver_to_running_instance(options.path.as_deref())? {
         return Ok(());
     }
 
     let ipc_rx = match mdviewer::ipc::spawn_listener() {
         Ok(rx) => rx,
         Err(_) => {
-            // Race condition: another instance bound the socket between our delivery
-            // attempt and our bind attempt. Give it a moment then retry delivery.
             std::thread::sleep(std::time::Duration::from_millis(200));
-            if mdviewer::ipc::deliver_to_running_instance(cli_path.as_deref())? {
+            if mdviewer::ipc::deliver_to_running_instance(options.path.as_deref())? {
                 return Ok(());
             }
             anyhow::bail!("failed to start IPC listener");
         }
     };
+
+    let style = mdviewer::config::resolve_style(options.style.as_deref());
 
     eframe::run_native(
         "mdviewer",
@@ -31,9 +31,9 @@ fn main() -> Result<()> {
             ..Default::default()
         },
         Box::new(move |cc| {
-            mdviewer::theme::setup(&cc.egui_ctx);
+            mdviewer::theme::setup(&cc.egui_ctx, style);
             cc.egui_ctx.set_embed_viewports(false);
-            Ok(Box::new(ViewerApp::new(cli_path, ipc_rx)))
+            Ok(Box::new(ViewerApp::new(options.path, ipc_rx, style)))
         }),
     )
     .map_err(|err| anyhow::anyhow!("{err}"))

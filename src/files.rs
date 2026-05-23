@@ -6,13 +6,38 @@ use anyhow::{Context, Result};
 
 pub const MARKDOWN_EXTENSIONS: &[&str] = &["md", "markdown", "mdown", "mkd", "txt"];
 
-pub fn cli_path_from(mut args: impl Iterator<Item = String>) -> Option<PathBuf> {
-    args.next();
-    args.next().map(PathBuf::from)
+pub struct LaunchOptions {
+    pub path: Option<PathBuf>,
+    pub style: Option<String>,
+}
+
+pub fn parse_launch_options_from(mut args: impl Iterator<Item = String>) -> LaunchOptions {
+    args.next(); // program name
+    let mut path = None;
+    let mut style = None;
+
+    while let Some(arg) = args.next() {
+        if arg == "--style" || arg == "-s" {
+            style = args.next();
+        } else if !arg.starts_with('-') {
+            path = Some(PathBuf::from(arg));
+            break;
+        }
+    }
+
+    LaunchOptions { path, style }
+}
+
+pub fn launch_options() -> LaunchOptions {
+    parse_launch_options_from(env::args())
+}
+
+pub fn cli_path_from(args: impl Iterator<Item = String>) -> Option<PathBuf> {
+    parse_launch_options_from(args).path
 }
 
 pub fn cli_path() -> Option<PathBuf> {
-    cli_path_from(env::args())
+    launch_options().path
 }
 
 pub fn title_from_path(path: &Path) -> String {
@@ -71,7 +96,22 @@ mod tests {
     }
 
     #[test]
-    fn cli_path_from_uses_first_arg_only() {
+    fn cli_path_from_style_flag_before_path() {
+        let opts = parse_launch_options_from(
+            [
+                "mdviewer".to_owned(),
+                "--style".to_owned(),
+                "glow-latte".to_owned(),
+                "notes.md".to_owned(),
+            ]
+            .into_iter(),
+        );
+        assert_eq!(opts.style.as_deref(), Some("glow-latte"));
+        assert_eq!(opts.path.as_deref(), Some(Path::new("notes.md")));
+    }
+
+    #[test]
+    fn cli_path_from_uses_first_non_flag_arg() {
         assert_eq!(
             cli_path_from(
                 [
