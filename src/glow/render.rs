@@ -10,7 +10,7 @@ use pulldown_cmark::CowStr;
 
 use crate::glow::list::List;
 use crate::glow::style::{GlowTextStyle, render_h1, render_heading, render_hr};
-use crate::theme::glow_latte as palette;
+use crate::theme::{FONT_SIZE, GlowPalette};
 
 /// Newline logic is constructed by the following:
 /// All elements try to insert a newline before them (if they are allowed)
@@ -76,6 +76,7 @@ enum HeadingCapture {
 }
 
 pub struct GlowRenderer {
+    palette: GlowPalette,
     curr_table: usize,
     text_style: GlowTextStyle,
     list: List,
@@ -92,8 +93,9 @@ pub struct GlowRenderer {
 }
 
 impl GlowRenderer {
-    pub fn new() -> Self {
+    pub fn new(palette: GlowPalette) -> Self {
         Self {
+            palette,
             curr_table: 0,
             text_style: GlowTextStyle::default(),
             list: List::default(),
@@ -297,7 +299,7 @@ impl GlowRenderer {
                     }
                 })
             } else {
-                blockquote(ui, palette::OVERLAY0, |ui| {
+                blockquote(ui, self.palette.overlay0, |ui| {
                     self.text_style.quote = true;
                     for (event, src_span) in collected_events {
                         self.event(ui, event, src_span, cache, options, max_width);
@@ -330,7 +332,7 @@ impl GlowRenderer {
             self.curr_table += 1;
 
             egui::Frame::new()
-                .stroke(Stroke::new(1.0, palette::OVERLAY0))
+                .stroke(Stroke::new(1.0, self.palette.overlay0))
                 .inner_margin(4.0)
                 .show(ui, |ui| {
                 let Table { header, rows } = parse_table(events);
@@ -429,14 +431,14 @@ impl GlowRenderer {
             pulldown_cmark::Event::HardBreak => newline(ui),
             pulldown_cmark::Event::Rule => {
                 self.line.try_insert_start(ui);
-                render_hr(ui);
+                render_hr(ui, self.palette);
             }
             pulldown_cmark::Event::TaskListMarker(checked) => {
                 let marker = if checked { "[✓] " } else { "[ ] " };
                 ui.label(
                     egui::RichText::new(marker)
-                        .color(palette::TEXT)
-                        .size(palette::FONT_SIZE),
+                        .color(self.palette.text)
+                        .size(FONT_SIZE),
                 );
             }
             pulldown_cmark::Event::InlineMath(tex) => {
@@ -458,7 +460,7 @@ impl GlowRenderer {
             return;
         }
 
-        let rich_text = self.text_style.to_richtext(&text);
+        let rich_text = self.text_style.to_richtext(&text, self.palette);
         if let Some(image) = &mut self.image {
             image.alt_text.push(rich_text);
         } else if let Some(block) = &mut self.code_block {
@@ -522,7 +524,7 @@ impl GlowRenderer {
 
             pulldown_cmark::Tag::Item => {
                 self.is_list_item = true;
-                self.list.start_item(ui, options);
+                self.list.start_item(ui, options, self.palette);
             }
 
             pulldown_cmark::Tag::FootnoteDefinition(note) => {
@@ -600,9 +602,9 @@ impl GlowRenderer {
                     std::mem::replace(&mut self.heading, HeadingCapture::None)
                 {
                     if level == 1 {
-                        render_h1(ui, &text);
+                        render_h1(ui, &text, self.palette);
                     } else {
-                        render_heading(ui, level, &text);
+                        render_heading(ui, level, &text, self.palette);
                     }
                 }
                 self.line.try_insert_end(ui);

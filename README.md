@@ -9,7 +9,7 @@ Built for terminal-heavy workflows — preview docs, notes, and script output wi
 - Native GUI window (Rust + [egui](https://github.com/emilk/egui))
 - CommonMark rendering: headings, lists, tables, blockquotes, code blocks, links, images
 - Syntax highlighting in fenced code blocks
-- Two visual styles: clean **default** or **[Glow](https://github.com/charmbracelet/glow)-inspired glow-latte** (Catppuccin Latte, terminal font)
+- Six visual styles: clean **default**, or **[Glow](https://github.com/charmbracelet/glow)-inspired Catppuccin** themes (Latte, Frappé, Macchiato, Mocha) with terminal font
 - Drag-and-drop or file picker to open documents
 - Multiple windows share one app instance — Cmd+`~` works as expected
 - Keyboard scrolling and quick quit
@@ -33,6 +33,7 @@ cargo run -- path/to/file.md
 ```bash
 mdviewer notes.md
 mdviewer --style glow-latte stoicism.md
+mdviewer --style glow-mocha stoicism.md
 mdviewer                    # open empty window, drop a file or click "Open file…"
 ```
 
@@ -43,7 +44,12 @@ Each additional invocation while the app is running opens a new window in the ex
 | Style | Names | Description |
 |-------|-------|-------------|
 | **default** | `default`, `main` | Light GitHub-style layout, proportional body text, SF Pro / SF Mono |
-| **glow-latte** | `glow-latte`, `glow` | Glow-like terminal aesthetic — Catppuccin Latte colors, monospace font (reads your Ghostty `font-family` when available) |
+| **glow-latte** | `glow-latte`, `glow`, `latte` | Light Catppuccin Latte — Glow-like terminal aesthetic, monospace font |
+| **glow-frappe** | `glow-frappe`, `frappe` | Dark Catppuccin Frappé |
+| **glow-macchiato** | `glow-macchiato`, `macchiato` | Dark Catppuccin Macchiato |
+| **glow-mocha** | `glow-mocha`, `mocha` | Dark Catppuccin Mocha |
+
+All glow styles read your Ghostty `font-family` when available, falling back to Fira Code / JetBrains Mono / SF Mono.
 
 Pick a style with config, env var, or CLI flag. Priority:
 

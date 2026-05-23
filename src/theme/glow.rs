@@ -1,25 +1,13 @@
-use eframe::egui::{self, Color32, FontDefinitions, FontFamily, Stroke, Vec2, Visuals};
+use eframe::egui::{self, FontDefinitions, FontFamily, Stroke, Vec2, Visuals};
 
-pub const BASE: Color32 = Color32::from_rgb(0xef, 0xf1, 0xf5);
-pub const TEXT: Color32 = Color32::from_rgb(0x4c, 0x4f, 0x69);
-pub const OVERLAY0: Color32 = Color32::from_rgb(0x9c, 0xa0, 0xb0);
-pub const SURFACE0: Color32 = Color32::from_rgb(0xdc, 0xe0, 0xe8);
-pub const BLUE: Color32 = Color32::from_rgb(0x1e, 0x66, 0xf5);
-pub const LAVENDER: Color32 = Color32::from_rgb(0x72, 0x87, 0xfd);
-pub const RED: Color32 = Color32::from_rgb(0xd2, 0x0f, 0x39);
-pub const WHITE: Color32 = Color32::from_rgb(0xff, 0xff, 0xff);
-
-pub const BG: Color32 = BASE;
-pub const MUTED: Color32 = OVERLAY0;
-pub const LINK: Color32 = BLUE;
-pub const BORDER: Color32 = OVERLAY0;
+use super::catppuccin::GlowPalette;
 
 pub const COLUMN_MAX_WIDTH: f32 = 820.0;
 pub const FONT_SIZE: f32 = 14.0;
 
-pub fn setup(ctx: &egui::Context) {
+pub fn setup(ctx: &egui::Context, palette: GlowPalette) {
     setup_fonts(ctx);
-    setup_visuals(ctx);
+    setup_visuals(ctx, palette);
 }
 
 fn ghostty_font_family() -> Option<String> {
@@ -96,25 +84,29 @@ fn setup_fonts(ctx: &egui::Context) {
     ctx.set_fonts(fonts);
 }
 
-fn setup_visuals(ctx: &egui::Context) {
-    let mut visuals = Visuals::light();
-    visuals.window_fill = BASE;
-    visuals.panel_fill = BASE;
-    visuals.extreme_bg_color = SURFACE0;
-    visuals.faint_bg_color = SURFACE0;
-    visuals.code_bg_color = SURFACE0;
-    visuals.hyperlink_color = BLUE;
-    visuals.override_text_color = Some(TEXT);
-    visuals.weak_text_color = Some(OVERLAY0);
+fn setup_visuals(ctx: &egui::Context, palette: GlowPalette) {
+    let mut visuals = if palette.is_dark {
+        Visuals::dark()
+    } else {
+        Visuals::light()
+    };
+    visuals.window_fill = palette.base;
+    visuals.panel_fill = palette.base;
+    visuals.extreme_bg_color = palette.surface0;
+    visuals.faint_bg_color = palette.surface0;
+    visuals.code_bg_color = palette.surface0;
+    visuals.hyperlink_color = palette.blue;
+    visuals.override_text_color = Some(palette.text);
+    visuals.weak_text_color = Some(palette.overlay0);
     visuals.weak_text_alpha = 1.0;
 
-    let text_stroke = Stroke::new(1.0, TEXT);
+    let text_stroke = Stroke::new(1.0, palette.text);
     visuals.widgets.noninteractive.fg_stroke = text_stroke;
     visuals.widgets.inactive.fg_stroke = text_stroke;
-    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, TEXT);
-    visuals.widgets.active.fg_stroke = Stroke::new(1.5, TEXT);
+    visuals.widgets.hovered.fg_stroke = Stroke::new(1.0, palette.text);
+    visuals.widgets.active.fg_stroke = Stroke::new(1.5, palette.text);
     visuals.widgets.open.fg_stroke = text_stroke;
-    visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0, BORDER);
+    visuals.widgets.noninteractive.bg_stroke = Stroke::new(1.0, palette.border());
 
     ctx.set_visuals(visuals);
 

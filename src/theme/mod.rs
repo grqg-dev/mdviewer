@@ -1,6 +1,10 @@
+pub mod catppuccin;
 mod default;
 mod fonts;
-pub mod glow_latte;
+mod glow;
+
+pub use catppuccin::{Flavor, GlowPalette};
+pub use glow::FONT_SIZE;
 
 use eframe::egui::Color32;
 use egui_commonmark::CommonMarkCache;
@@ -24,11 +28,14 @@ impl Palette {
                 muted: default::MUTED,
                 link: default::LINK,
             },
-            Style::GlowLatte => Self {
-                bg: glow_latte::BG,
-                muted: glow_latte::MUTED,
-                link: glow_latte::LINK,
-            },
+            Style::Glow(flavor) => {
+                let palette = flavor.palette();
+                Self {
+                    bg: palette.bg(),
+                    muted: palette.muted(),
+                    link: palette.link(),
+                }
+            }
         }
     }
 }
@@ -36,14 +43,14 @@ impl Palette {
 pub fn setup(ctx: &egui::Context, style: Style) {
     match style {
         Style::Default => default::setup(ctx),
-        Style::GlowLatte => glow_latte::setup(ctx),
+        Style::Glow(flavor) => glow::setup(ctx, flavor.palette()),
     }
 }
 
 pub fn column_max_width(style: Style) -> f32 {
     match style {
         Style::Default => default::COLUMN_MAX_WIDTH,
-        Style::GlowLatte => glow_latte::COLUMN_MAX_WIDTH,
+        Style::Glow(_) => glow::COLUMN_MAX_WIDTH,
     }
 }
 
@@ -60,8 +67,8 @@ pub fn show_markdown(
                 .max_image_width(Some(width as usize))
                 .show(ui, cache, markdown);
         }
-        Style::GlowLatte => {
-            crate::glow::show_glow_markdown(ui, cache, markdown, width);
+        Style::Glow(flavor) => {
+            crate::glow::show_glow_markdown(ui, cache, markdown, width, flavor.palette());
         }
     }
 }

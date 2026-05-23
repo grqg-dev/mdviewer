@@ -1,6 +1,6 @@
 use eframe::egui::{self, FontId, RichText, Ui};
 
-use crate::theme::glow_latte as palette;
+use crate::theme::{FONT_SIZE, GlowPalette};
 
 #[derive(Default, Clone)]
 pub struct GlowTextStyle {
@@ -13,11 +13,11 @@ pub struct GlowTextStyle {
 }
 
 impl GlowTextStyle {
-    pub fn to_richtext(&self, text: &str) -> RichText {
-        let mut rt = RichText::new(text).color(palette::TEXT);
+    pub fn to_richtext(&self, text: &str, palette: GlowPalette) -> RichText {
+        let mut rt = RichText::new(text).color(palette.text);
 
         if self.quote {
-            rt = rt.italics().color(palette::TEXT);
+            rt = rt.italics().color(palette.text);
         }
 
         if self.strong {
@@ -34,50 +34,50 @@ impl GlowTextStyle {
 
         if self.code {
             rt = rt
-                .font(FontId::monospace(palette::FONT_SIZE))
-                .color(palette::RED)
-                .background_color(palette::SURFACE0);
+                .font(FontId::monospace(FONT_SIZE))
+                .color(palette.red)
+                .background_color(palette.surface0);
         }
 
         if self.link {
-            rt = rt.color(palette::BLUE).strong().underline();
+            rt = rt.color(palette.blue).strong().underline();
         }
 
         rt
     }
 }
 
-pub fn render_hr(ui: &mut Ui) {
+pub fn render_hr(ui: &mut Ui, palette: GlowPalette) {
     ui.label(
         RichText::new("────────")
-            .color(palette::OVERLAY0)
-            .size(palette::FONT_SIZE),
+            .color(palette.overlay0)
+            .size(FONT_SIZE),
     );
     egui_commonmark_backend::elements::newline(ui);
 }
 
-pub fn render_h1(ui: &mut Ui, text: &str) {
+pub fn render_h1(ui: &mut Ui, text: &str, palette: GlowPalette) {
     egui::Frame::new()
-        .fill(palette::LAVENDER)
+        .fill(palette.lavender)
         .inner_margin(egui::Margin::symmetric(8, 4))
         .show(ui, |ui| {
             ui.label(
                 RichText::new(text.trim())
-                    .color(palette::WHITE)
+                    .color(palette.white)
                     .strong()
-                    .size(palette::FONT_SIZE),
+                    .size(FONT_SIZE),
             );
         });
     egui_commonmark_backend::elements::newline(ui);
 }
 
-pub fn render_heading(ui: &mut Ui, level: u8, text: &str) {
+pub fn render_heading(ui: &mut Ui, level: u8, text: &str, palette: GlowPalette) {
     let prefix = format!("{} ", "#".repeat(level as usize));
     ui.horizontal(|ui| {
-        ui.label(RichText::new(prefix).color(palette::BLUE).size(palette::FONT_SIZE));
+        ui.label(RichText::new(prefix).color(palette.blue).size(FONT_SIZE));
         let mut rt = RichText::new(text.trim())
-            .color(palette::BLUE)
-            .size(palette::FONT_SIZE);
+            .color(palette.blue)
+            .size(FONT_SIZE);
         if level < 6 {
             rt = rt.strong();
         }

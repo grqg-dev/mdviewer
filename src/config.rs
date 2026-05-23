@@ -2,26 +2,38 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
+use crate::theme::Flavor;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Style {
     #[default]
     Default,
-    GlowLatte,
+    Glow(Flavor),
 }
 
 impl Style {
     pub fn parse(raw: &str) -> Option<Self> {
         match raw.trim().to_ascii_lowercase().as_str() {
             "default" | "main" => Some(Self::Default),
-            "glow-latte" | "glow" | "glow_latte" => Some(Self::GlowLatte),
-            _ => None,
+            _ => Flavor::parse(raw).map(Self::Glow),
         }
     }
 
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Default => "default",
-            Self::GlowLatte => "glow-latte",
+            Self::Glow(flavor) => flavor.as_str(),
+        }
+    }
+
+    pub fn is_glow(self) -> bool {
+        matches!(self, Self::Glow(_))
+    }
+
+    pub fn flavor(self) -> Option<Flavor> {
+        match self {
+            Self::Glow(flavor) => Some(flavor),
+            Self::Default => None,
         }
     }
 }
@@ -70,13 +82,17 @@ pub fn resolve_style(cli_override: Option<&str>) -> Style {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::theme::Flavor;
 
     #[test]
     fn parses_style_names() {
         assert_eq!(Style::parse("default"), Some(Style::Default));
         assert_eq!(Style::parse("main"), Some(Style::Default));
-        assert_eq!(Style::parse("glow-latte"), Some(Style::GlowLatte));
-        assert_eq!(Style::parse("glow"), Some(Style::GlowLatte));
+        assert_eq!(Style::parse("glow-latte"), Some(Style::Glow(Flavor::Latte)));
+        assert_eq!(Style::parse("glow"), Some(Style::Glow(Flavor::Latte)));
+        assert_eq!(Style::parse("glow-frappe"), Some(Style::Glow(Flavor::Frappe)));
+        assert_eq!(Style::parse("glow-macchiato"), Some(Style::Glow(Flavor::Macchiato)));
+        assert_eq!(Style::parse("glow-mocha"), Some(Style::Glow(Flavor::Mocha)));
         assert!(Style::parse("unknown").is_none());
     }
 
@@ -86,14 +102,14 @@ mod tests {
 # comment
 style = "glow-latte"
 "#;
-        assert_eq!(parse_style_from_toml(toml), Some(Style::GlowLatte));
+        assert_eq!(parse_style_from_toml(toml), Some(Style::Glow(Flavor::Latte)));
     }
 
     #[test]
     fn cli_override_wins() {
         assert_eq!(
             resolve_style(Some("glow-latte")),
-            Style::GlowLatte
+            Style::Glow(Flavor::Latte)
         );
     }
 }

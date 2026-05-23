@@ -2,7 +2,7 @@ use eframe::egui::{RichText, Ui};
 use egui_commonmark_backend::elements::{newline, number_point};
 use egui_commonmark_backend::misc::CommonMarkOptions;
 
-use crate::theme::glow_latte as palette;
+use crate::theme::GlowPalette;
 
 struct ListLevel {
     current_number: Option<u64>,
@@ -35,7 +35,7 @@ impl List {
         self.items.len() == 1
     }
 
-    pub fn start_item(&mut self, ui: &mut Ui, options: &CommonMarkOptions) {
+    pub fn start_item(&mut self, ui: &mut Ui, options: &CommonMarkOptions, palette: GlowPalette) {
         if self.has_list_begun {
             newline(ui);
         } else {
@@ -51,7 +51,7 @@ impl List {
                 *number += 1;
             } else {
                 let bullet = if len > 1 { "◦ " } else { "• " };
-                ui.label(RichText::new(bullet).color(palette::TEXT));
+                ui.label(RichText::new(bullet).color(palette.text));
             }
         } else {
             unreachable!();
