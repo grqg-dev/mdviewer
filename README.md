@@ -16,17 +16,45 @@ Built for terminal-heavy workflows — preview docs, notes, and script output wi
 
 ## Install
 
-Requires Rust (stable) and macOS.
+**Requirements:** macOS, Rust (stable), and `~/.cargo/bin` on your `PATH`.
+
+### From source (recommended)
 
 ```bash
+git clone https://github.com/grqg-dev/mdviewer.git
+cd mdviewer
 cargo install --path .
 ```
 
-Or run directly from the repo:
+That puts `mdviewer` in `~/.cargo/bin`. Verify:
+
+```bash
+which mdviewer
+mdviewer --style glow-mocha README.md
+```
+
+### Upgrade after pulling changes
+
+```bash
+cd mdviewer
+git pull
+cargo install --path . --force
+```
+
+### Run without installing
 
 ```bash
 cargo run -- path/to/file.md
+cargo run -- --style glow-mocha path/to/file.md
 ```
+
+### Install from GitHub (no local clone)
+
+```bash
+cargo install --git https://github.com/grqg-dev/mdviewer.git
+```
+
+Use `--force` to replace an existing install.
 
 ## Usage
 
@@ -34,8 +62,11 @@ cargo run -- path/to/file.md
 mdviewer notes.md
 mdviewer --style glow-latte stoicism.md
 mdviewer --style glow-mocha stoicism.md
-mdviewer                    # open empty window, drop a file or click "Open file…"
+mdviewer -s frappe coffee.md          # short flag; flavor names work too
+mdviewer                            # open empty window, drop a file or click "Open file…"
 ```
+
+Supported file extensions: `.md`, `.markdown`, `.mdown`, `.mkd`, `.txt`.
 
 Each additional invocation while the app is running opens a new window in the existing process instead of spawning another Dock icon.
 
@@ -62,8 +93,40 @@ Pick a style with config, env var, or CLI flag. Priority:
 
 ```toml
 # ~/.config/mdviewer/config.toml
-style = "glow-latte"
+style = "glow-mocha"
 ```
+
+## For Claude (and other agents)
+
+Paste this into a Cursor rule, Claude Project instructions, or a chat when you want the agent to preview markdown with mdviewer:
+
+```text
+When I ask to preview, open, or view a markdown file in mdviewer, run it from the terminal — do not open it in the browser or IDE preview.
+
+Command:
+  mdviewer [path/to/file.md]
+  mdviewer --style <style> [path/to/file.md]
+
+Styles (pick one, or omit for default):
+  default          — light GitHub-style
+  glow-latte       — light Catppuccin (aliases: glow, latte)
+  glow-frappe      — dark Catppuccin (alias: frappe)
+  glow-macchiato   — dark Catppuccin (alias: macchiato)
+  glow-mocha       — dark Catppuccin (alias: mocha)
+
+Examples:
+  mdviewer README.md
+  mdviewer --style glow-mocha notes/plan.md
+  MDVIEWER_STYLE=glow-mocha mdviewer report.md
+
+Behavior:
+- macOS native GUI window; scroll with Space / Page Up / Page Down
+- If mdviewer is already running, a new invocation opens another window in the same app
+- Use absolute paths when the working directory is unclear
+- After writing or editing a .md file the user should read, offer to open it with mdviewer
+```
+
+Install (if missing): `cargo install --git https://github.com/grqg-dev/mdviewer.git`
 
 ## Keyboard shortcuts
 
