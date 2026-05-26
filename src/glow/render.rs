@@ -333,50 +333,43 @@ impl GlowRenderer {
             let id = ui.id().with("_table").with(self.curr_table);
             self.curr_table += 1;
 
+            let frame_margin = 4.0;
             egui::Frame::new()
                 .stroke(Stroke::new(1.0, self.palette.overlay0))
-                .inner_margin(4.0)
+                .inner_margin(frame_margin)
                 .show(ui, |ui| {
-                let Table { header, rows } = parse_table(events);
+                    let Table { header, rows } = parse_table(events);
+                    let num_cols = header.len().max(1);
 
-                egui::Grid::new(id).striped(false).show(ui, |ui| {
-                    for col in header {
-                        ui.horizontal(|ui| {
-                            for (e, src_span) in col {
-                                let tmp_start =
-                                    std::mem::replace(&mut self.line.should_start_newline, false);
-                                let tmp_end =
-                                    std::mem::replace(&mut self.line.should_end_newline, false);
-                                self.event(ui, e, src_span, cache, options, max_width);
-                                self.line.should_start_newline = tmp_start;
-                                self.line.should_end_newline = tmp_end;
+                    // Cap column widths so a single wide cell (e.g. long inline code
+                    // span) can't squeeze the others into character-level wrapping.
+                    // Soft cap = an equal share of available width; columns with
+                    // shorter content still render narrower than the cap.
+                    let item_spacing_x = ui.spacing().item_spacing.x;
+                    let inner_width =
+                        (max_width - 2.0 * frame_margin).max(0.0);
+                    let total_spacing = item_spacing_x * (num_cols.saturating_sub(1)) as f32;
+                    let cell_max = ((inner_width - total_spacing) / num_cols as f32).max(40.0);
+
+                    egui::Grid::new(id)
+                        .striped(false)
+                        .max_col_width(cell_max)
+                        .show(ui, |ui| {
+                            for col in header {
+                                self.render_table_cell(ui, col, cache, options, cell_max);
+                            }
+
+                            ui.end_row();
+
+                            for row in rows {
+                                for col in row {
+                                    self.render_table_cell(ui, col, cache, options, cell_max);
+                                }
+
+                                ui.end_row();
                             }
                         });
-                    }
-
-                    ui.end_row();
-
-                    for row in rows {
-                        for col in row {
-                            ui.horizontal(|ui| {
-                                for (e, src_span) in col {
-                                    let tmp_start = std::mem::replace(
-                                        &mut self.line.should_start_newline,
-                                        false,
-                                    );
-                                    let tmp_end =
-                                        std::mem::replace(&mut self.line.should_end_newline, false);
-                                    self.event(ui, e, src_span, cache, options, max_width);
-                                    self.line.should_start_newline = tmp_start;
-                                    self.line.should_end_newline = tmp_end;
-                                }
-                            });
-                        }
-
-                        ui.end_row();
-                    }
                 });
-            });
 
             self.is_table = false;
             if events.peek().is_none() {
@@ -385,6 +378,29 @@ impl GlowRenderer {
 
             self.line.try_insert_end(ui);
         }
+    }
+
+    fn render_table_cell(
+        &mut self,
+        ui: &mut Ui,
+        col: Vec<(pulldown_cmark::Event, Range<usize>)>,
+        cache: &mut CommonMarkCache,
+        options: &CommonMarkOptions,
+        cell_max: f32,
+    ) {
+        // Allocate a fixed-width wrapping region so cell content wraps at word
+        // boundaries instead of letting the grid pick degenerate column widths.
+        let layout = egui::Layout::left_to_right(egui::Align::TOP).with_main_wrap(true);
+        ui.allocate_ui_with_layout(egui::vec2(cell_max, 0.0), layout, |ui| {
+            for (e, src_span) in col {
+                let tmp_start =
+                    std::mem::replace(&mut self.line.should_start_newline, false);
+                let tmp_end = std::mem::replace(&mut self.line.should_end_newline, false);
+                self.event(ui, e, src_span, cache, options, cell_max);
+                self.line.should_start_newline = tmp_start;
+                self.line.should_end_newline = tmp_end;
+            }
+        });
     }
 
     fn event(
