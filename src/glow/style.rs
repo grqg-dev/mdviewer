@@ -61,11 +61,14 @@ pub fn render_h1(ui: &mut Ui, text: &str, palette: GlowPalette) {
         .fill(palette.lavender)
         .inner_margin(egui::Margin::symmetric(8, 4))
         .show(ui, |ui| {
-            ui.label(
-                RichText::new(text.trim())
-                    .color(palette.white)
-                    .strong()
-                    .size(FONT_SIZE),
+            ui.add(
+                egui::Label::new(
+                    RichText::new(text.trim())
+                        .color(palette.white)
+                        .strong()
+                        .size(FONT_SIZE),
+                )
+                .wrap(),
             );
         });
     egui_commonmark_backend::elements::newline(ui);
@@ -73,7 +76,7 @@ pub fn render_h1(ui: &mut Ui, text: &str, palette: GlowPalette) {
 
 pub fn render_heading(ui: &mut Ui, level: u8, text: &str, palette: GlowPalette) {
     let prefix = format!("{} ", "#".repeat(level as usize));
-    ui.horizontal(|ui| {
+    ui.horizontal_wrapped(|ui| {
         ui.label(RichText::new(prefix).color(palette.blue).size(FONT_SIZE));
         let mut rt = RichText::new(text.trim())
             .color(palette.blue)
@@ -81,7 +84,7 @@ pub fn render_heading(ui: &mut Ui, level: u8, text: &str, palette: GlowPalette) 
         if level < 6 {
             rt = rt.strong();
         }
-        ui.label(rt);
+        ui.add(egui::Label::new(rt).wrap());
     });
     egui_commonmark_backend::elements::newline(ui);
 }

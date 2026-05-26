@@ -63,8 +63,10 @@ pub fn show_markdown(
 ) {
     match style {
         Style::Default => {
+            // Width is enforced by the caller's `set_max_width`; avoid passing a
+            // larger `max_image_width` that `options.max_width` would prefer via max().
             default::markdown_viewer()
-                .max_image_width(Some(width as usize))
+                .max_image_width(None)
                 .show(ui, cache, markdown);
         }
         Style::Glow(flavor) => {

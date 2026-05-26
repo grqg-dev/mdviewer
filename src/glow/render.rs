@@ -128,9 +128,11 @@ impl GlowRenderer {
         cache: &mut CommonMarkCache,
         options: &CommonMarkOptions,
         text: &str,
-        _max_width: f32,
+        max_width: f32,
     ) -> egui::InnerResponse<()> {
-        let max_width = options.max_width(ui);
+        // Use the caller's constrained width. `options.max_width` takes the max of
+        // `max_image_width` and `ui.available_width()`, which can exceed the column
+        // width and clip wrapped text at the right edge.
         let layout = egui::Layout::left_to_right(egui::Align::BOTTOM).with_main_wrap(true);
 
         let re = ui.allocate_ui_with_layout(egui::vec2(max_width, 0.0), layout, |ui| {
@@ -468,7 +470,7 @@ impl GlowRenderer {
         } else if let Some(link) = &mut self.link {
             link.text.push(rich_text);
         } else {
-            ui.label(rich_text);
+            ui.add(egui::Label::new(rich_text).wrap());
         }
     }
 

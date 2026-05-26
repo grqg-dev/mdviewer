@@ -98,35 +98,7 @@ style = "glow-mocha"
 
 ## For Claude (and other agents)
 
-Paste this into a Cursor rule, Claude Project instructions, or a chat when you want the agent to preview markdown with mdviewer:
-
-```text
-When I ask to preview, open, or view a markdown file in mdviewer, run it from the terminal — do not open it in the browser or IDE preview.
-
-Command:
-  mdviewer [path/to/file.md]
-  mdviewer --style <style> [path/to/file.md]
-
-Styles (pick one, or omit for default):
-  default          — light GitHub-style
-  glow-latte       — light Catppuccin (aliases: glow, latte)
-  glow-frappe      — dark Catppuccin (alias: frappe)
-  glow-macchiato   — dark Catppuccin (alias: macchiato)
-  glow-mocha       — dark Catppuccin (alias: mocha)
-
-Examples:
-  mdviewer README.md
-  mdviewer --style glow-mocha notes/plan.md
-  MDVIEWER_STYLE=glow-mocha mdviewer report.md
-
-Behavior:
-- macOS native GUI window; scroll with Space / Page Up / Page Down
-- If mdviewer is already running, a new invocation opens another window in the same app
-- Use absolute paths when the working directory is unclear
-- After writing or editing a .md file the user should read, offer to open it with mdviewer
-```
-
-Install (if missing): `cargo install --git https://github.com/grqg-dev/mdviewer.git`
+See **[AGENTS.md](AGENTS.md)** for preview commands, style names, and the build/install workflow agents must follow after code changes.
 
 ## Keyboard shortcuts
 
@@ -145,8 +117,21 @@ The first `mdviewer` process listens on a Unix socket at `$TMPDIR/mdviewer-{user
 ## Build & test
 
 ```bash
-cargo build --release
 cargo test
+cargo install --path . --force   # updates ~/.cargo/bin/mdviewer (what the shell runs)
+```
+
+For a release binary in `target/` only, without updating the install:
+
+```bash
+cargo build --release
+./target/release/mdviewer example.md
+```
+
+Or use the install script:
+
+```bash
+./scripts/bundle-macos.sh
 ```
 
 ## Stack

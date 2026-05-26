@@ -111,9 +111,9 @@ impl DocumentWindow {
             .auto_shrink([false; 2])
             .scroll_offset(Vec2::new(0.0, self.scroll_offset))
             .show(ui, |ui| {
-                ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                ui.vertical_centered(|ui| {
                     let width = ui.available_width().min(theme::column_max_width(self.style));
-                    ui.set_width(width);
+                    ui.set_max_width(width);
                     theme::show_markdown(ui, &mut self.cache, markdown, width, self.style);
                 });
             });
